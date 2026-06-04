@@ -1,0 +1,402 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800;900&display=swap');
+@import url('tldraw/tldraw.css');
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+	margin: 0;
+	width: 100%;
+	min-height: 100%;
+	background: #0d1117;
+	color: #e6edf3;
+	font-family:
+		Inter,
+		ui-sans-serif,
+		system-ui,
+		-apple-system,
+		BlinkMacSystemFont,
+		'Segoe UI',
+		sans-serif;
+	overscroll-behavior: none;
+}
+
+body {
+	font-family: 'Inter', sans-serif;
+	overscroll-behavior: none;
+}
+
+/* Keep tldraw layout normal */
+.RoomWrapper {
+	display: flex;
+	flex-direction: column;
+	position: absolute;
+	inset: 0;
+}
+
+.RoomWrapper-content {
+	position: relative;
+	flex: 1;
+}
+
+/* DevBoard homepage fallback styles */
+
+.DevBoardHome {
+	position: relative;
+	min-height: 100vh;
+	overflow: hidden;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 32px;
+	background: #0d1117;
+	color: #e6edf3;
+}
+
+.DevBoardHome-bg {
+	position: absolute;
+	border-radius: 999px;
+	filter: blur(70px);
+	pointer-events: none;
+}
+
+.DevBoardHome-bgOne {
+	width: 420px;
+	height: 420px;
+	left: -120px;
+	top: -120px;
+	background: rgba(31, 111, 235, 0.28);
+}
+
+.DevBoardHome-bgTwo {
+	width: 380px;
+	height: 380px;
+	right: -120px;
+	bottom: -120px;
+	background: rgba(88, 166, 255, 0.18);
+}
+
+.DevBoardHome-grid {
+	position: absolute;
+	inset: 0;
+	background-image:
+		linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+	background-size: 44px 44px;
+	mask-image: radial-gradient(circle at center, black 0%, transparent 75%);
+	pointer-events: none;
+}
+
+.DevBoardHome-card {
+	position: relative;
+	z-index: 1;
+	width: min(760px, 100%);
+	padding: 46px;
+	border: 1px solid rgba(139, 148, 158, 0.24);
+	border-radius: 28px;
+	background: rgba(13, 17, 23, 0.78);
+	backdrop-filter: blur(22px);
+	box-shadow:
+		0 24px 80px rgba(0, 0, 0, 0.55),
+		inset 0 1px 0 rgba(255, 255, 255, 0.05);
+	text-align: center;
+}
+
+.DevBoardHome-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 22px;
+	padding: 8px 14px;
+	border: 1px solid rgba(88, 166, 255, 0.32);
+	border-radius: 999px;
+	background: rgba(88, 166, 255, 0.1);
+	color: #58a6ff;
+	font-size: 13px;
+	font-weight: 800;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.DevBoardHome-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 999px;
+	background: #3fb950;
+	box-shadow: 0 0 12px rgba(63, 185, 80, 0.9);
+}
+
+.DevBoardHome-title {
+	margin: 0;
+	font-size: clamp(52px, 9vw, 96px);
+	line-height: 0.95;
+	letter-spacing: -0.06em;
+	font-weight: 900;
+	color: #f0f6fc;
+}
+
+.DevBoardHome-subtitle {
+	max-width: 620px;
+	margin: 24px auto 34px;
+	color: #8b949e;
+	font-size: 18px;
+	line-height: 1.7;
+	font-weight: 500;
+}
+
+.DevBoardHome-actions {
+	display: flex;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 14px;
+	margin-bottom: 34px;
+}
+
+.DevBoardHome-primary,
+.DevBoardHome-secondary {
+	height: 46px;
+	padding: 0 24px;
+	border-radius: 12px;
+	font-size: 15px;
+	font-weight: 800;
+	cursor: pointer;
+	transition:
+		transform 140ms ease,
+		background 140ms ease,
+		border-color 140ms ease;
+}
+
+.DevBoardHome-primary {
+	border: 1px solid rgba(88, 166, 255, 0.55);
+	background: #1f6feb;
+	color: white;
+}
+
+.DevBoardHome-primary:hover {
+	background: #388bfd;
+	transform: translateY(-1px);
+}
+
+.DevBoardHome-secondary {
+	border: 1px solid rgba(139, 148, 158, 0.32);
+	background: rgba(33, 38, 45, 0.9);
+	color: #e6edf3;
+}
+
+.DevBoardHome-secondary:hover {
+	background: rgba(48, 54, 61, 0.98);
+	border-color: rgba(139, 148, 158, 0.55);
+	transform: translateY(-1px);
+}
+
+.DevBoardHome-features {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 12px;
+	margin-top: 14px;
+}
+
+.DevBoardHome-features div {
+	padding: 18px 14px;
+	border: 1px solid rgba(139, 148, 158, 0.2);
+	border-radius: 16px;
+	background: rgba(33, 38, 45, 0.55);
+}
+
+.DevBoardHome-features strong {
+	display: block;
+	margin-bottom: 6px;
+	color: #f0f6fc;
+	font-size: 22px;
+	font-weight: 900;
+}
+
+.DevBoardHome-features span {
+	color: #8b949e;
+	font-size: 13px;
+	font-weight: 700;
+}
+
+@media (max-width: 700px) {
+	.DevBoardHome {
+		padding: 18px;
+	}
+
+	.DevBoardHome-card {
+		padding: 32px 22px;
+	}
+
+	.DevBoardHome-features {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* ===================================================== */
+/* DevBoard: right style panel cyan symbol fix            */
+/* Color swatches stay untouched. No custom labels.        */
+/* ===================================================== */
+
+.tlui-style-panel {
+	background: rgba(22, 27, 34, 0.98) !important;
+	border: 1px solid rgba(139, 148, 158, 0.38) !important;
+	box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55) !important;
+	overflow: hidden !important;
+}
+
+/* Keep the whole panel visible */
+.tlui-style-panel,
+.tlui-style-panel * {
+	opacity: 1 !important;
+}
+
+/*
+	IMPORTANT:
+	The first section of the style panel is the color swatch grid.
+	So we do NOT touch the first section.
+	Everything after the first section gets bright cyan for symbols/text.
+*/
+.tlui-style-panel > *:not(:first-child) {
+	color: #22d3ee !important;
+}
+
+/* Bright cyan for lower section text: S M L XL etc. */
+.tlui-style-panel > *:not(:first-child) span,
+.tlui-style-panel > *:not(:first-child) button,
+.tlui-style-panel > *:not(:first-child) [role='button'] {
+	color: #22d3ee !important;
+	opacity: 1 !important;
+	font-weight: 900 !important;
+}
+
+/* Bright cyan for lower section SVG symbols */
+.tlui-style-panel > *:not(:first-child) svg,
+.tlui-style-panel > *:not(:first-child) svg *,
+.tlui-style-panel > *:not(:first-child) .tlui-icon,
+.tlui-style-panel > *:not(:first-child) .tlui-icon * {
+	color: #22d3ee !important;
+	stroke: #22d3ee !important;
+	fill: none !important;
+	opacity: 1 !important;
+	filter: brightness(1.8) contrast(1.2) !important;
+}
+
+/* Some tldraw icons use currentColor, so force currentColor only in lower sections */
+.tlui-style-panel > *:not(:first-child) button *,
+.tlui-style-panel > *:not(:first-child) [role='button'] * {
+	color: #22d3ee !important;
+	opacity: 1 !important;
+}
+
+/* Selected option: inner cyan-blue highlight, no outside overlap */
+.tlui-style-panel [data-state='on'],
+.tlui-style-panel [data-state='checked'],
+.tlui-style-panel [data-state='selected'],
+.tlui-style-panel [data-active='true'],
+.tlui-style-panel [data-selected='true'],
+.tlui-style-panel [aria-checked='true'],
+.tlui-style-panel [aria-pressed='true'],
+.tlui-style-panel [aria-selected='true'],
+.tlui-style-panel button[aria-checked='true'],
+.tlui-style-panel button[aria-pressed='true'],
+.tlui-style-panel button[aria-selected='true'],
+.tlui-style-panel label:has(input:checked),
+.tlui-style-panel button:has(input:checked),
+.tlui-style-panel .tlui-button__active,
+.tlui-style-panel .tlui-button__selected {
+	outline: none !important;
+	border-radius: 10px !important;
+	box-shadow:
+		inset 0 0 0 2px #38bdf8,
+		inset 0 0 0 999px rgba(14, 165, 233, 0.16) !important;
+	opacity: 1 !important;
+}
+
+/* Keep color swatches colorful by restoring known swatch names */
+.tlui-style-panel [aria-label*='black' i],
+.tlui-style-panel [data-testid*='black' i] {
+	color: #000000 !important;
+}
+
+.tlui-style-panel [aria-label*='grey' i],
+.tlui-style-panel [aria-label*='gray' i],
+.tlui-style-panel [data-testid*='grey' i],
+.tlui-style-panel [data-testid*='gray' i] {
+	color: #9ca3af !important;
+}
+
+.tlui-style-panel [aria-label*='blue' i],
+.tlui-style-panel [data-testid*='blue' i] {
+	color: #4f7cff !important;
+}
+
+.tlui-style-panel [aria-label*='light blue' i],
+.tlui-style-panel [data-testid*='light-blue' i] {
+	color: #4fb3ff !important;
+}
+
+.tlui-style-panel [aria-label*='violet' i],
+.tlui-style-panel [aria-label*='purple' i],
+.tlui-style-panel [data-testid*='violet' i],
+.tlui-style-panel [data-testid*='purple' i] {
+	color: #c45cff !important;
+}
+
+.tlui-style-panel [aria-label*='green' i],
+.tlui-style-panel [data-testid*='green' i] {
+	color: #22c55e !important;
+}
+
+.tlui-style-panel [aria-label*='yellow' i],
+.tlui-style-panel [data-testid*='yellow' i] {
+	color: #fbbf24 !important;
+}
+
+.tlui-style-panel [aria-label*='orange' i],
+.tlui-style-panel [data-testid*='orange' i] {
+	color: #f97316 !important;
+}
+
+.tlui-style-panel [aria-label*='red' i],
+.tlui-style-panel [data-testid*='red' i] {
+	color: #ef4444 !important;
+}
+
+.tlui-style-panel [aria-label*='pink' i],
+.tlui-style-panel [data-testid*='pink' i] {
+	color: #fb7185 !important;
+}
+
+/* Swatch children use restored colors */
+.tlui-style-panel [aria-label*='black' i] *,
+.tlui-style-panel [aria-label*='grey' i] *,
+.tlui-style-panel [aria-label*='gray' i] *,
+.tlui-style-panel [aria-label*='blue' i] *,
+.tlui-style-panel [aria-label*='light blue' i] *,
+.tlui-style-panel [aria-label*='violet' i] *,
+.tlui-style-panel [aria-label*='purple' i] *,
+.tlui-style-panel [aria-label*='green' i] *,
+.tlui-style-panel [aria-label*='yellow' i] *,
+.tlui-style-panel [aria-label*='orange' i] *,
+.tlui-style-panel [aria-label*='red' i] *,
+.tlui-style-panel [aria-label*='pink' i] *,
+.tlui-style-panel [data-testid*='black' i] *,
+.tlui-style-panel [data-testid*='grey' i] *,
+.tlui-style-panel [data-testid*='gray' i] *,
+.tlui-style-panel [data-testid*='blue' i] *,
+.tlui-style-panel [data-testid*='light-blue' i] *,
+.tlui-style-panel [data-testid*='violet' i] *,
+.tlui-style-panel [data-testid*='purple' i] *,
+.tlui-style-panel [data-testid*='green' i] *,
+.tlui-style-panel [data-testid*='yellow' i] *,
+.tlui-style-panel [data-testid*='orange' i] *,
+.tlui-style-panel [data-testid*='red' i] *,
+.tlui-style-panel [data-testid*='pink' i] * {
+	color: currentColor !important;
+	fill: currentColor !important;
+	stroke: currentColor !important;
+}
+
+/* Keep tldraw's own labels/tooltips untouched */
