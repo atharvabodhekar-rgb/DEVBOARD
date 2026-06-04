@@ -5,7 +5,8 @@ import { Tldraw, createShapeId, toRichText, uniqueId, type Editor } from 'tldraw
 import { getBookmarkPreview } from '../getBookmarkPreview'
 import { multiplayerAssetStore } from '../multiplayerAssetStore'
 
-const TLDRAW_LICENSE_KEY = 'tldraw-2026-09-11/WyJBNldYd3FRUyIsWyIqIl0sMTYsIjIwMjYtMDktMTEiXQ.8V/ptb/zJNzvqvlla65XeqQy0LPT1Tzg6F75oDitk+FstGiAFiqRNxuty+jcdG6PqKlAsmq9dY8912vnKso9Yg'
+const TLDRAW_LICENSE_KEY =
+	'tldraw-2026-09-11/WyJBNldYd3FRUyIsWyIqIl0sMTYsIjIwMjYtMDktMTEiXQ.8V/ptb/zJNzvqvlla65XeqQy0LPT1Tzg6F75oDitk+FstGiAFiqRNxuty+jcdG6PqKlAsmq9dY8912vnKso9Yg'
 
 type BackgroundMode = 'plain' | 'grid' | 'dots' | 'lined'
 type TemplateType = 'brainstorm' | 'wireframe' | 'retro' | 'mindmap'
@@ -69,7 +70,19 @@ function RoomWrapper({
 }) {
 	const [copiedMessage, setCopiedMessage] = useState<string | null>(null)
 	const [background, setBackground] = useState<BackgroundMode>('grid')
+	const [isCompactLayout, setIsCompactLayout] = useState(false)
 	const navigate = useNavigate()
+
+	useEffect(() => {
+		function handleResize() {
+			setIsCompactLayout(window.innerWidth < 1050)
+		}
+
+		handleResize()
+		window.addEventListener('resize', handleResize)
+
+		return () => window.removeEventListener('resize', handleResize)
+	}, [])
 
 	useEffect(() => {
 		if (!copiedMessage) return
@@ -361,9 +374,11 @@ function RoomWrapper({
 		}
 	}
 
+	const topbarStyle = isCompactLayout ? styles.topbarCompact : styles.topbar
+
 	return (
 		<div style={styles.page}>
-			<div style={styles.topbar}>
+			<div style={topbarStyle}>
 				<div style={styles.brand}>
 					<div style={styles.logo}>D</div>
 
@@ -461,12 +476,19 @@ const styles: Record<string, CSSProperties> = {
 		zIndex: 1,
 	},
 
+	/*
+		FIXED:
+		- Removed left: 50% and transform translateX(-50%)
+		- Starts after tldraw's Page 1 / menu area
+		- Keeps the island professional without covering native controls
+	*/
 	topbar: {
-		position: 'absolute',
+		position: 'fixed',
 		top: 14,
-		left: '50%',
-		transform: 'translateX(-50%)',
-		zIndex: 20,
+		left: 380,
+		right: 14,
+		transform: 'none',
+		zIndex: 40,
 		display: 'flex',
 		alignItems: 'center',
 		gap: 10,
@@ -476,8 +498,37 @@ const styles: Record<string, CSSProperties> = {
 		background: 'rgba(13, 17, 23, 0.94)',
 		backdropFilter: 'blur(16px)',
 		boxShadow: '0 18px 45px rgba(0, 0, 0, 0.45)',
-		maxWidth: 'calc(100vw - 28px)',
+		maxWidth: 'calc(100vw - 394px)',
 		overflowX: 'auto',
+		overflowY: 'hidden',
+		scrollbarWidth: 'thin',
+	},
+
+	/*
+		Compact fallback:
+		On smaller screens the island moves below the tldraw top UI,
+		so it will not cover Page 1.
+	*/
+	topbarCompact: {
+		position: 'fixed',
+		top: 70,
+		left: 12,
+		right: 12,
+		transform: 'none',
+		zIndex: 40,
+		display: 'flex',
+		alignItems: 'center',
+		gap: 10,
+		padding: 10,
+		border: '1px solid rgba(139, 148, 158, 0.28)',
+		borderRadius: 16,
+		background: 'rgba(13, 17, 23, 0.94)',
+		backdropFilter: 'blur(16px)',
+		boxShadow: '0 18px 45px rgba(0, 0, 0, 0.45)',
+		maxWidth: 'calc(100vw - 24px)',
+		overflowX: 'auto',
+		overflowY: 'hidden',
+		scrollbarWidth: 'thin',
 	},
 
 	brand: {
@@ -513,7 +564,7 @@ const styles: Record<string, CSSProperties> = {
 
 	roomId: {
 		marginTop: 5,
-		maxWidth: 210,
+		maxWidth: 190,
 		overflow: 'hidden',
 		textOverflow: 'ellipsis',
 		whiteSpace: 'nowrap',
