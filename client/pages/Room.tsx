@@ -1,5 +1,5 @@
 import { useSync } from '@tldraw/sync'
-import { ReactNode, useEffect, useState, type CSSProperties } from 'react'
+import { ReactNode, useEffect, useState, type CSSProperties, type ChangeEvent } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Tldraw, createShapeId, toRichText, uniqueId, type Editor } from 'tldraw'
 import { getBookmarkPreview } from '../getBookmarkPreview'
@@ -70,19 +70,8 @@ function RoomWrapper({
 }) {
 	const [copiedMessage, setCopiedMessage] = useState<string | null>(null)
 	const [background, setBackground] = useState<BackgroundMode>('grid')
-	const [isCompactLayout, setIsCompactLayout] = useState(false)
+	const [isMenuOpen, setIsMenuOpen] = useState(false)
 	const navigate = useNavigate()
-
-	useEffect(() => {
-		function handleResize() {
-			setIsCompactLayout(window.innerWidth < 1050)
-		}
-
-		handleResize()
-		window.addEventListener('resize', handleResize)
-
-		return () => window.removeEventListener('resize', handleResize)
-	}, [])
 
 	useEffect(() => {
 		if (!copiedMessage) return
@@ -284,6 +273,8 @@ function RoomWrapper({
 			editor.select(...ids)
 			editor.setCurrentTool('select')
 		})
+
+		setIsMenuOpen(false)
 	}
 
 	function addCommentToSelectedElement() {
@@ -323,9 +314,11 @@ function RoomWrapper({
 			editor.select(commentNote.id)
 			editor.setCurrentTool('select')
 		})
+
+		setIsMenuOpen(false)
 	}
 
-	function handleTemplateChange(event: React.ChangeEvent<HTMLSelectElement>) {
+	function handleTemplateChange(event: ChangeEvent<HTMLSelectElement>) {
 		const value = event.target.value as TemplateType
 
 		if (!value) return
@@ -374,84 +367,102 @@ function RoomWrapper({
 		}
 	}
 
-	const topbarStyle = isCompactLayout ? styles.topbarCompact : styles.topbar
-
 	return (
 		<div style={styles.page}>
-			<div style={topbarStyle}>
-				<div style={styles.brand}>
-					<div style={styles.logo}>D</div>
+			<div style={styles.compactHud}>
+				<div style={styles.logo}>D</div>
 
-					<div style={styles.brandText}>
-						<div style={styles.title}>DevBoard</div>
-						<div style={styles.roomId}>Room: {roomId}</div>
-					</div>
+				<div style={styles.compactText}>
+					<div style={styles.title}>DevBoard</div>
+					<div style={styles.roomId}>Room: {roomId}</div>
 				</div>
-
-				<div style={styles.divider} />
 
 				<div style={styles.status}>
 					<span style={styles.statusDot} />
-					Live sync
+					Live
 				</div>
 
 				<div style={isViewOnly ? styles.viewBadge : styles.editBadge}>
-					{isViewOnly ? 'View only' : 'Edit mode'}
+					{isViewOnly ? 'View' : 'Edit'}
 				</div>
 
-				<div style={styles.divider} />
-
-				<select
-					style={styles.select}
-					defaultValue=""
-					onChange={handleTemplateChange}
-					disabled={isViewOnly}
-					title="Insert template board"
-				>
-					<option value="" disabled>
-						Templates
-					</option>
-					<option value="brainstorm">Brainstorming</option>
-					<option value="wireframe">Wireframe</option>
-					<option value="retro">Retro</option>
-					<option value="mindmap">Mindmap</option>
-				</select>
-
-				<select
-					style={styles.select}
-					value={background}
-					onChange={(event) => setBackground(event.target.value as BackgroundMode)}
-					title="Change canvas background"
-				>
-					<option value="plain">Plain</option>
-					<option value="grid">Grid</option>
-					<option value="dots">Dots</option>
-					<option value="lined">Lined</option>
-				</select>
-
-				<button style={styles.button} onClick={addCommentToSelectedElement} disabled={isViewOnly}>
-					Comment
+				<button style={styles.menuButton} onClick={() => setIsMenuOpen((value) => !value)}>
+					{isMenuOpen ? 'Close' : 'Menu'}
 				</button>
 
-				<div style={styles.divider} />
-
-				<button style={styles.button} onClick={() => navigate('/')}>
-					Home
-				</button>
-
-				<button style={styles.button} onClick={createNewBoard}>
-					New board
-				</button>
-
-				<button style={styles.primaryButton} onClick={copyEditLink}>
-					Edit link
-					{copiedMessage && <div style={styles.copied}>{copiedMessage}</div>}
-				</button>
-
-				<button style={styles.button} onClick={copyViewLink}>
-					View link
-				</button>
+				{copiedMessage && <div style={styles.copied}>{copiedMessage}</div>}
 			</div>
+
+			{isMenuOpen && (
+				<div style={styles.controlPanel}>
+					<div style={styles.panelHeader}>
+						<div>
+							<div style={styles.panelTitle}>DevBoard Controls</div>
+							<div style={styles.panelSubtitle}>Tools stay hidden until needed.</div>
+						</div>
+
+						<button style={styles.smallButton} onClick={() => setIsMenuOpen(false)}>
+							×
+						</button>
+					</div>
+
+					<div style={styles.panelSection}>
+						<label style={styles.label}>Templates</label>
+						<select
+							style={styles.select}
+							defaultValue=""
+							onChange={handleTemplateChange}
+							disabled={isViewOnly}
+							title="Insert template board"
+						>
+							<option value="" disabled>
+								Choose template
+							</option>
+							<option value="brainstorm">Brainstorming</option>
+							<option value="wireframe">Wireframe</option>
+							<option value="retro">Retro</option>
+							<option value="mindmap">Mindmap</option>
+						</select>
+					</div>
+
+					<div style={styles.panelSection}>
+						<label style={styles.label}>Background</label>
+						<select
+							style={styles.select}
+							value={background}
+							onChange={(event) => setBackground(event.target.value as BackgroundMode)}
+							title="Change canvas background"
+						>
+							<option value="plain">Plain</option>
+							<option value="grid">Grid</option>
+							<option value="dots">Dots</option>
+							<option value="lined">Lined</option>
+						</select>
+					</div>
+
+					<div style={styles.buttonGrid}>
+						<button style={styles.button} onClick={addCommentToSelectedElement} disabled={isViewOnly}>
+							Comment
+						</button>
+
+						<button style={styles.button} onClick={() => navigate('/')}>
+							Home
+						</button>
+
+						<button style={styles.button} onClick={createNewBoard}>
+							New board
+						</button>
+
+						<button style={styles.primaryButton} onClick={copyEditLink}>
+							Edit link
+						</button>
+
+						<button style={styles.button} onClick={copyViewLink}>
+							View link
+						</button>
+					</div>
+				</div>
+			)}
 
 			<div style={styles.content}>{children}</div>
 			<div style={getBackgroundStyle(background)} />
@@ -476,67 +487,24 @@ const styles: Record<string, CSSProperties> = {
 		zIndex: 1,
 	},
 
-	/*
-		FIXED:
-		- Removed left: 50% and transform translateX(-50%)
-		- Starts after tldraw's Page 1 / menu area
-		- Keeps the island professional without covering native controls
-	*/
-	topbar: {
+	compactHud: {
 		position: 'fixed',
-		top: 14,
-		left: 380,
-		right: 14,
-		transform: 'none',
-		zIndex: 40,
+		top: 10,
+		left: '50%',
+		transform: 'translateX(-50%)',
+		zIndex: 9999,
 		display: 'flex',
 		alignItems: 'center',
-		gap: 10,
-		padding: 10,
+		gap: 8,
+		padding: 8,
 		border: '1px solid rgba(139, 148, 158, 0.28)',
-		borderRadius: 16,
+		borderRadius: 18,
 		background: 'rgba(13, 17, 23, 0.94)',
 		backdropFilter: 'blur(16px)',
 		boxShadow: '0 18px 45px rgba(0, 0, 0, 0.45)',
-		maxWidth: 'calc(100vw - 394px)',
-		overflowX: 'auto',
-		overflowY: 'hidden',
-		scrollbarWidth: 'thin',
-	},
-
-	/*
-		Compact fallback:
-		On smaller screens the island moves below the tldraw top UI,
-		so it will not cover Page 1.
-	*/
-	topbarCompact: {
-		position: 'fixed',
-		top: 70,
-		left: 12,
-		right: 12,
-		transform: 'none',
-		zIndex: 40,
-		display: 'flex',
-		alignItems: 'center',
-		gap: 10,
-		padding: 10,
-		border: '1px solid rgba(139, 148, 158, 0.28)',
-		borderRadius: 16,
-		background: 'rgba(13, 17, 23, 0.94)',
-		backdropFilter: 'blur(16px)',
-		boxShadow: '0 18px 45px rgba(0, 0, 0, 0.45)',
-		maxWidth: 'calc(100vw - 24px)',
-		overflowX: 'auto',
-		overflowY: 'hidden',
-		scrollbarWidth: 'thin',
-	},
-
-	brand: {
-		display: 'flex',
-		alignItems: 'center',
-		gap: 10,
-		minWidth: 0,
-		flexShrink: 0,
+		maxWidth: 'calc(100vw - 420px)',
+		minWidth: 360,
+		overflow: 'visible',
 	},
 
 	logo: {
@@ -551,8 +519,10 @@ const styles: Record<string, CSSProperties> = {
 		flexShrink: 0,
 	},
 
-	brandText: {
+	compactText: {
 		minWidth: 0,
+		maxWidth: 180,
+		marginRight: 4,
 	},
 
 	title: {
@@ -564,7 +534,7 @@ const styles: Record<string, CSSProperties> = {
 
 	roomId: {
 		marginTop: 5,
-		maxWidth: 190,
+		maxWidth: 170,
 		overflow: 'hidden',
 		textOverflow: 'ellipsis',
 		whiteSpace: 'nowrap',
@@ -573,19 +543,12 @@ const styles: Record<string, CSSProperties> = {
 		color: '#8b949e',
 	},
 
-	divider: {
-		width: 1,
-		height: 30,
-		background: 'rgba(139, 148, 158, 0.25)',
-		flexShrink: 0,
-	},
-
 	status: {
 		display: 'flex',
 		alignItems: 'center',
 		gap: 7,
-		height: 36,
-		padding: '0 12px',
+		height: 34,
+		padding: '0 11px',
 		border: '1px solid rgba(63, 185, 80, 0.35)',
 		borderRadius: 10,
 		background: 'rgba(46, 160, 67, 0.14)',
@@ -605,10 +568,10 @@ const styles: Record<string, CSSProperties> = {
 	},
 
 	editBadge: {
-		height: 36,
+		height: 34,
 		display: 'flex',
 		alignItems: 'center',
-		padding: '0 12px',
+		padding: '0 11px',
 		border: '1px solid rgba(63, 185, 80, 0.35)',
 		borderRadius: 10,
 		background: 'rgba(46, 160, 67, 0.14)',
@@ -620,10 +583,10 @@ const styles: Record<string, CSSProperties> = {
 	},
 
 	viewBadge: {
-		height: 36,
+		height: 34,
 		display: 'flex',
 		alignItems: 'center',
-		padding: '0 12px',
+		padding: '0 11px',
 		border: '1px solid rgba(210, 153, 34, 0.42)',
 		borderRadius: 10,
 		background: 'rgba(210, 153, 34, 0.14)',
@@ -634,38 +597,8 @@ const styles: Record<string, CSSProperties> = {
 		flexShrink: 0,
 	},
 
-	select: {
-		height: 36,
-		padding: '0 12px',
-		border: '1px solid rgba(139, 148, 158, 0.32)',
-		borderRadius: 10,
-		background: '#21262d',
-		color: '#e6edf3',
-		fontSize: 13,
-		fontWeight: 800,
-		cursor: 'pointer',
-		whiteSpace: 'nowrap',
-		flexShrink: 0,
-		outline: 'none',
-	},
-
-	button: {
-		height: 36,
-		padding: '0 13px',
-		border: '1px solid rgba(139, 148, 158, 0.32)',
-		borderRadius: 10,
-		background: '#21262d',
-		color: '#e6edf3',
-		fontSize: 13,
-		fontWeight: 800,
-		cursor: 'pointer',
-		whiteSpace: 'nowrap',
-		flexShrink: 0,
-	},
-
-	primaryButton: {
-		position: 'relative',
-		height: 36,
+	menuButton: {
+		height: 34,
 		padding: '0 13px',
 		border: '1px solid rgba(88, 166, 255, 0.65)',
 		borderRadius: 10,
@@ -678,9 +611,120 @@ const styles: Record<string, CSSProperties> = {
 		flexShrink: 0,
 	},
 
+	controlPanel: {
+		position: 'fixed',
+		top: 72,
+		left: '50%',
+		transform: 'translateX(-50%)',
+		zIndex: 9999,
+		width: 390,
+		maxWidth: 'calc(100vw - 24px)',
+		padding: 14,
+		border: '1px solid rgba(139, 148, 158, 0.28)',
+		borderRadius: 18,
+		background: 'rgba(13, 17, 23, 0.96)',
+		backdropFilter: 'blur(18px)',
+		boxShadow: '0 24px 60px rgba(0, 0, 0, 0.55)',
+	},
+
+	panelHeader: {
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		gap: 12,
+		marginBottom: 12,
+	},
+
+	panelTitle: {
+		fontSize: 15,
+		fontWeight: 900,
+		color: '#f0f6fc',
+	},
+
+	panelSubtitle: {
+		marginTop: 3,
+		fontSize: 12,
+		fontWeight: 600,
+		color: '#8b949e',
+	},
+
+	panelSection: {
+		display: 'grid',
+		gap: 7,
+		marginBottom: 10,
+	},
+
+	label: {
+		fontSize: 12,
+		fontWeight: 800,
+		color: '#8b949e',
+		textTransform: 'uppercase',
+		letterSpacing: 0.7,
+	},
+
+	select: {
+		width: '100%',
+		height: 38,
+		padding: '0 12px',
+		border: '1px solid rgba(139, 148, 158, 0.32)',
+		borderRadius: 10,
+		background: '#21262d',
+		color: '#e6edf3',
+		fontSize: 13,
+		fontWeight: 800,
+		cursor: 'pointer',
+		outline: 'none',
+	},
+
+	buttonGrid: {
+		display: 'grid',
+		gridTemplateColumns: '1fr 1fr',
+		gap: 8,
+		marginTop: 12,
+	},
+
+	button: {
+		height: 38,
+		padding: '0 13px',
+		border: '1px solid rgba(139, 148, 158, 0.32)',
+		borderRadius: 10,
+		background: '#21262d',
+		color: '#e6edf3',
+		fontSize: 13,
+		fontWeight: 800,
+		cursor: 'pointer',
+		whiteSpace: 'nowrap',
+	},
+
+	smallButton: {
+		width: 34,
+		height: 34,
+		border: '1px solid rgba(139, 148, 158, 0.32)',
+		borderRadius: 10,
+		background: '#21262d',
+		color: '#e6edf3',
+		fontSize: 20,
+		fontWeight: 900,
+		cursor: 'pointer',
+		lineHeight: 1,
+	},
+
+	primaryButton: {
+		height: 38,
+		padding: '0 13px',
+		border: '1px solid rgba(88, 166, 255, 0.65)',
+		borderRadius: 10,
+		background: '#1f6feb',
+		color: '#ffffff',
+		fontSize: 13,
+		fontWeight: 900,
+		cursor: 'pointer',
+		whiteSpace: 'nowrap',
+	},
+
 	copied: {
 		position: 'absolute',
-		top: 44,
+		top: 52,
 		right: 0,
 		padding: '8px 10px',
 		border: '1px solid rgba(63, 185, 80, 0.35)',
