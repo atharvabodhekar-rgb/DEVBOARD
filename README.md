@@ -1,119 +1,169 @@
-# tldraw sync server
+# DevBoard
 
-This is a production-ready backend for [tldraw sync](https://tldraw.dev/docs/sync).
+DevBoard is a real-time collaborative whiteboard built for brainstorming, planning, and visual collaboration. It works like a lightweight Figma/Miro-style board where multiple users can draw, add sticky notes, create shapes, write text, upload images, and see each other’s cursors live.
 
-- Your client-side tldraw-based app can be served from anywhere you want.
-- This backend uses [Cloudflare Workers](https://developers.cloudflare.com/workers/), and will need
-  to be deployed to your own Cloudflare account.
-- Each whiteboard is synced via
-  [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) to a [Cloudflare
-  Durable Object](https://developers.cloudflare.com/durable-objects/), which persists room state in
-  its built-in SQLite storage.
-- Uploaded images and videos are stored in a [Cloudflare
-  R2](https://developers.cloudflare.com/r2/) bucket.
-- Although unrelated to tldraw sync, this server also includes a component to fetch link previews
-  for URLs added to the canvas.
-  This is a minimal setup of the same system that powers multiplayer collaboration for hundreds of
-  thousands of rooms & users on www.tldraw.com. Because durable objects effectively create a mini
-  server instance for every single active room, we've never needed to worry about scale. Cloudflare
-  handles the tricky infrastructure work of ensuring there's only ever one instance of each room, and
-  making sure that every user gets connected to that instance. We've found that with this approach,
-  each room is able to handle about 50 simultaneous collaborators.
+## Live Demo
 
-[![architecture](./arch.png)](https://www.tldraw.com/ro/Yb_QHJFP9syPZq1YrV3YR?v=-255,-148,2025,1265&p=page)
+```text
+https://devboard.atharvabodhekar.workers.dev
+```
 
-When a user opens a room, they connect via Workers to a durable object. Each durable object is like
-its own miniature server. There's only ever one for each room, and all the users of that room
-connect to it. When a user makes a change to the drawing, it's sent via a websocket connection to
-the durable object for that room. The durable object applies the change to its in-memory copy of the
-document, and broadcasts the change via websockets to all other connected clients. Room state is
-persisted automatically to the durable object's built-in SQLite storage, so it survives restarts
-and hibernation. When the last client leaves the room, the durable object will shut down.
+## GitHub Repository
 
-Static assets like images and videos are too big to be synced via websockets and a durable object.
-Instead, they're uploaded to workers which store them in an R2 bucket. When they're downloaded,
-they're cached on cloudflare's edge network to reduce costs and make serving them faster.
+```text
+https://github.com/atharvabodhekar-rgb/DEVBOARD
+```
 
-## Development
+## Features
 
-To install dependencies, run `yarn`. To start a local development server, run `yarn dev`. This will
-start a [`vite`](https://vitejs.dev/) dev server running both your application frontend, and the
-cloudflare workers backend via the [cloudflare vite
-plugin](https://developers.cloudflare.com/workers/vite-plugin/). The app & server should now be
-running at http://localhost:5137.
+* Infinite canvas with smooth pan and zoom
+* Freehand pen drawing
+* Shape tools including rectangle, circle, arrow, and line
+* Sticky notes
+* Text boxes
+* Image upload with browser-side compression
+* Real-time multiplayer sync
+* Cursor presence for collaborators
+* Shareable board links
+* View/edit permission links
+* Undo/redo support
+* Auto-save and reconnection recovery
+* Layer and z-order controls
+* SVG export for vector-quality export
+* Dark mode interface
+* Template boards
 
-The backend worker is under [`worker`](./worker/), and is split across several files:
+  * Brainstorming
+  * Wireframe
+  * Retrospective
+  * Mindmap
+* Multiple canvas backgrounds
 
-- **[`worker/worker.ts`](./worker/worker.ts):** the main entrypoint to the worker, defining each
-  route available.
-- **[`worker/TldrawDurableObject.ts`](./worker/TldrawDurableObject.ts):** the sync durable object.
-  An instance of this is created for every active room. This exposes a
-  [`TLSocketRoom`](https://tldraw.dev/reference/sync-core/TLSocketRoom) over websockets, and
-  persists room state to the durable object's built-in SQLite storage.
-- **[`worker/assetUploads.ts`](./worker/assetUploads.ts):** uploads, downloads, and caching for
-  static assets like images and videos.
-- **[`worker/bookmarkUnfurling.ts`](./worker/bookmarkUnfurling.ts):** extract URL metadata for bookmark shapes.
+  * Plain
+  * Grid
+  * Dots
+  * Lined
+* Comment notes attached to selected elements
 
-The frontend client is under [`client`](./client):
+## Tech Stack
 
-- **[`client/App.tsx`](./client/App.tsx):** the main client `<App />` component. This connects our
-  sync backend to the `<Tldraw />` component, wiring in assets and bookmark previews.
-- **[`client/multiplayerAssetStore.tsx`](./client/multiplayerAssetStore.tsx):** how does the client
-  upload and retrieve assets like images & videos from the worker?
-- **[`client/getBookmarkPreview.tsx`](./client/getBookmarkPreview.tsx):** how does the client fetch
-  bookmark previews from the worker?
+* React
+* TypeScript
+* Vite
+* tldraw
+* Cloudflare Workers
+* Cloudflare Durable Objects
+* WebSocket-based multiplayer sync
+* Wrangler CLI
 
-  ## Custom shapes
+## Project Architecture
 
-To add support for custom shapes, see the [tldraw sync custom shapes docs](https://tldraw.dev/docs/sync#Custom-shapes--bindings).
+DevBoard uses a client-server architecture.
 
-## Adding cloudflare to your own repo
+The client is built with React, Vite, TypeScript, and tldraw. It handles the whiteboard UI, canvas tools, editor interactions, image upload, template insertion, comments, and board sharing.
 
-If you already have an app using tldraw and want to use the system in this repo, you can copy and
-paste the relevant parts to your own app.
+The backend runs on Cloudflare Workers. Real-time board synchronization is handled through Cloudflare Durable Objects. Each board room is connected to a Durable Object instance, which manages multiplayer state, persistence, and reconnection recovery.
 
-To add the server to your own app, copy the contents of the [`worker`](./worker/) folder and
-[`./wrangler.toml`](./wrangler.toml) into your app. Add the dependencies from
-[`package.json`](./package.json). You can run the worker using `wrangler dev` in the same folder as
-`./wrangler.toml`.
+More details are available in:
 
-To point your existing client at the server defined in this repo, copy
-[`client/multiplayerAssetStore.tsx`](./client/multiplayerAssetStore.tsx) and
-[`client/getBookmarkPreview.tsx`](./client/getBookmarkPreview.tsx) into your app. Then, adapt the
-code from [`client/App.tsx`](./client/App.tsx) to your own app. Adapt the `/api/` URLs used in each
-of these files to point at your new `wrangler dev` server.
+```text
+ARCHITECTURE.md
+```
+
+## Image Upload
+
+The project supports image upload without requiring paid object storage.
+
+For the free deployment, uploaded images are compressed in the browser and stored as data URLs inside the board state. This keeps the image upload feature working without needing Cloudflare R2 billing setup.
+
+For a production version, the asset storage system can be upgraded to Cloudflare R2, AWS S3, Supabase Storage, or Firebase Storage.
+
+## View and Edit Links
+
+DevBoard supports simple link-based permissions.
+
+Edit mode:
+
+```text
+?mode=edit
+```
+
+View-only mode:
+
+```text
+?mode=view
+```
+
+The app provides separate buttons for copying edit links and view-only links.
+
+## Export
+
+DevBoard supports SVG export through tldraw’s export tools. SVG export preserves vector quality for shapes, text, arrows, and other vector elements.
+
+## Local Development
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+Open the local URL shown in the terminal.
+
+Build the project:
+
+```bash
+npm run build
+```
 
 ## Deployment
 
-To deploy this example, you'll need to create a cloudflare account and create an R2 bucket to store
-uploaded images and videos. Update `bucket_name = 'tldraw-content'` in
-[`wrangler.toml`](./wrangler.toml) with the name of your new bucket.
+The project is deployed using Cloudflare Workers and Wrangler.
 
-To actually deploy the app, first create a production build using `yarn build`. Then, run `yarn
-wrangler deploy`. This will deploy the backend worker along with the frontend app to cloudflare.
-This should give you a workers.dev URL, but you can also [configure a custom
-domain](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/).
+Deploy command:
 
-## License
+```bash
+npx wrangler deploy
+```
 
-This project is provided under the MIT license found [here](https://github.com/tldraw/tldraw-sync-cloudflare/blob/main/LICENSE.md). The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
+Live deployment:
 
-## Trademarks
+```text
+https://devboard.atharvabodhekar.workers.dev
+```
 
-Copyright (c) 2024-present tldraw Inc. The tldraw name and logo are trademarks of tldraw. Please see our [trademark guidelines](https://github.com/tldraw/tldraw/blob/main/TRADEMARKS.md) for info on acceptable usage.
+## Deliverables
 
-## Distributions
+* GitHub repository with full source code
+* Live deployment URL
+* `ARCHITECTURE.md`
+* `AI_DECLARATION.md`
+* `prompts/` folder
 
-You can find tldraw on npm [here](https://www.npmjs.com/package/@tldraw/tldraw?activeTab=versions).
+## AI Declaration
 
-## Contribution
+This project was developed with AI assistance for planning, debugging, documentation, deployment help, and requirement mapping.
 
-Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
+More details are available in:
 
-## Community
+```text
+AI_DECLARATION.md
+```
 
-Have questions, comments or feedback? [Join our discord](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).
+## Prompts Record
 
-## Contact
+A short record of AI-assisted development prompts is included in:
 
-Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw).
+```text
+prompts/
+```
+
+## Notes
+
+This project is designed for academic/project demonstration. It focuses on real-time collaboration, whiteboard tools, deployment, documentation, and a clean user experience.
